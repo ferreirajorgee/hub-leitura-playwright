@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente (credenciais)
+.env
+.env.*
+!.env.example
+
+# Artefatos do Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Evidências geradas em runtime
+tests/evidencias/
+
+# Artefatos de sessão do servidor MCP (snapshots, logs, screenshots)
+.playwright-mcp/

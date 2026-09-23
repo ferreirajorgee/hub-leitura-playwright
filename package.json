@@ -1,0 +1,58 @@
+{
+  "name": "hub-leitura-playwright",
+  "version": "1.0.0",
+  "description": "Automação de testes E2E com Playwright + MCP (base multi-domínio)",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed --workers=1",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:codegen": "playwright codegen",
+    "test:report": "playwright show-report",
+    "test:hub-leitura": "playwright test tests/hub-leitura/",
+    "test:stability": "playwright test --repeat-each=3 --workers=1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "secrets:check": "secretlint --secretlintignore .gitignore \"**/*\"",
+    "audit:check": "npm audit --audit-level=high",
+    "mcp": "playwright-mcp --config playwright-mcp.config.json",
+    "prepare": "husky"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/mcp": "0.0.82",
+    "@playwright/test": "^1.63.0",
+    "@secretlint/secretlint-rule-preset-recommend": "^13.0.5",
+    "@types/node": "^26.6.2",
+    "dotenv": "^18.0.3",
+    "eslint": "^10.11.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.12.0",
+    "eslint-plugin-security": "^4.0.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "prettier": "^3.9.8",
+    "secretlint": "^13.0.5",
+    "typescript": "6.0.3",
+    "typescript-eslint": "^8.70.1"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "lint-staged": {
+    "*.{ts,mjs,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": "prettier --write",
+    "*": "secretlint"
+  }
+}

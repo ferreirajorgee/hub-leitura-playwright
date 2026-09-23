@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qualidade:
+    name: Qualidade de código
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Formatação
+        run: npm run format:check
+
+      - name: Lint (Playwright, segurança, seletores frágeis)
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Credenciais expostas
+        run: npm run secrets:check
+
+      - name: Auditoria de dependências
+        run: npm run audit:check
+
+  e2e:
+    name: Testes E2E
+    needs: qualidade
+    # A aplicação fica em outro repositório: o job só roda se houver um ambiente acessível configurado.
+    if: vars.HUBLEITURA_BASE_URL != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      HUBLEITURA_BASE_URL: ${{ vars.HUBLEITURA_BASE_URL }}
+      HUBLEITURA_API_URL: ${{ vars.HUBLEITURA_API_URL }}
+      HUBLEITURA_USER: ${{ secrets.HUBLEITURA_USER }}
+      HUBLEITURA_PASSWORD: ${{ secrets.HUBLEITURA_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Instalar browser
+        run: npx playwright install --with-deps chromium
+
+      # No CI, sistema fora do ar deve falhar o job, e não virar testes "skipped".
+      - name: Verificar disponibilidade do sistema
+        run: |
+          curl -fsS --max-time 15 "$HUBLEITURA_BASE_URL/api/health"
+          curl -fsS --max-time 15 "$HUBLEITURA_API_URL/api/health"
+
+      - name: Executar testes
+        run: npx playwright test
+
+      - name: Publicar relatório
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            tests/evidencias/
+          retention-days: 14
